@@ -9,13 +9,13 @@ NULL
 
 
 
-#' bootcamp_2021
+#' bootcamp2021
 #'
-#' Package supporting the bootcamp_2021 course
+#' Package supporting the bootcamp2021 course
 #'
-#' Functions, datasets, and tutorials, useful for the bootcamp_2021 course.
+#' Functions, datasets, and tutorials, useful for the bootcamp2021 course.
 #'
-#' @name bootcamp_2021
+#' @name bootcamp2021
 #' @keywords package
 #' @docType package
 NULL

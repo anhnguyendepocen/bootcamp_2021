@@ -44,7 +44,7 @@ check_and_update_github <- function(pkg) {
   } else {
     print(paste0("You do not have the latest version of the ", check$package, " package."))
 
-    choice <- utils::menu(c("Y", "N"), title = "Do you want me to update bootcamp_2021?")
+    choice <- utils::menu(c("Y", "N"), title = "Do you want me to update bootcamp2021?")
     if (choice == 1) {
       remotes::install_github(repo = pkg, dependencies = TRUE)
     }

@@ -1,8 +1,8 @@
 #' Pick a tutorial
 #'
-#' Pick a tutorial from the bootcamp_2021 package
+#' Pick a tutorial from the bootcamp2021 package
 #'
-#' Shows a list of currently available tutorials in the #' \code{bootcamp_2021} package.
+#' Shows a list of currently available tutorials in the #' \code{bootcamp2021} package.
 #' The user can pick the preferred tutorial by entering the number that corresponds
 #' to the preferred tutorial. The tutorial will then open in the user's default
 #' web browser.
@@ -19,12 +19,12 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' bootcamp_2021_tutorials()
+#' bootcamp2021_tutorials()
 #' }
-bootcamp_2021_tutorials <- function(graphics = TRUE) {
+bootcamp2021_tutorials <- function(graphics = TRUE) {
   if (!is.logical(graphics)) stop("You need to set 'graphics' to TRUE or FALSE only (without parentheses)")
-  all_tuts <- learnr::available_tutorials("bootcamp_2021")
-  perform <- glue::glue("learnr::run_tutorial('{tuto}', package = 'bootcamp_2021')",
+  all_tuts <- learnr::available_tutorials("bootcamp2021")
+  perform <- glue::glue("learnr::run_tutorial('{tuto}', package = 'bootcamp2021')",
                         tuto = all_tuts$name)
 
   cat("\n\nPlease pick which tutorial you want to run, it will open in your default browser.\n")

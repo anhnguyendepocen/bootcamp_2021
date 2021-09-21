@@ -1,13 +1,13 @@
 # INDEX <- read.table(
-#   file = "C:/Dropbox/R/eigen_packages/=git/bootcamp_2021/doc/INDEX",
+#   file = "C:/Dropbox/R/eigen_packages/=git/bootcamp2021/doc/INDEX",
 #   header = TRUE, sep = ",", strip.white = TRUE)
 
 
-#' Open a bootcamp_2021 vignette in the browser
+#' Open a bootcamp2021 vignette in the browser
 #'
-#' Open a bootcamp_2021 vignette in your browser
+#' Open a bootcamp2021 vignette in your browser
 #'
-#' Shows a list of currently available online vignettes for the #' \code{bootcamp_2021} package.
+#' Shows a list of currently available online vignettes for the #' \code{bootcamp2021} package.
 #' The user can pick the preferred vignette by entering the number that corresponds
 #' to the preferred vignette. The vignette will then open in the user's default
 #' web browser.
@@ -24,10 +24,10 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' open_bootcamp_2021_vignettes()
+#' open_bootcamp2021_vignettes()
 #' }
-open_bootcamp_2021_vignettes <- function(graphics = TRUE) {
-  paths <- find.package("bootcamp_2021", lib.loc = NULL, quiet = TRUE)
+open_bootcamp2021_vignettes <- function(graphics = TRUE) {
+  paths <- find.package("bootcamp2021", lib.loc = NULL, quiet = TRUE)
 
   if (dir.exists(file.path(paths, "doc"))) {
     paths <- file.path(paths, "doc")
