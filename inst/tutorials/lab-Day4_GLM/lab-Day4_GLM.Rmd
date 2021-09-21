@@ -1,0 +1,14 @@
+---
+title: "Lab Day 4 - GLM"
+description: "Day 4: Generalized Linear Models - Binomial Link Function"
+output: 
+  learnr::tutorial:
+    fig_caption: no
+    progressive: true
+    allow_skip: true
+    toc: true
+    toc_depth: 3
+    theme: readable
+runtime: shiny_prerendered
+---
+

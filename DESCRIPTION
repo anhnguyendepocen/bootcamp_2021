@@ -1,0 +1,46 @@
+Package: bootcamp_2021
+Type: Package
+Title: Statistics Bootcamp 2021
+Version: 0.00.1
+Authors@R:
+	c(person(given = "Roger",
+					family = "Leenders",
+					role = c("aut", "cre"),
+					email = "SNA4DS@jads.nl"),
+	  person(given = "Claudia",
+					family = "Zucca",
+					role = c("aut"),
+					email = "SNA4DS@jads.nl"))
+Maintainer: Roger Leenders <r.t.a.j.leenders@jads.nl>
+Description: Contains the tutorials for the JADS course "Social Network Analysis for Data Science" (2021-2022). Update the package frequently, to have access to the most up-to-date tutorials. The tutorials will be added throughout the semester. The package contains a vignette that shows the most important functions you need to know for this course.
+Depends: R (>= 4.1.0)
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/SNAnalyst/SNA4DS
+BugReports: https://github.com/SNAnalyst/SNA4DS/issues
+RoxygenNote: 7.1.1
+Imports:
+    glue,
+    gradethis,
+	igraph,
+	influenceR,
+	intergraph,
+    knitr,
+    learnr,
+	ndtv,
+	network,
+	networkDynamic,
+	remotes,
+    rmarkdown,
+	rstudioapi,
+	sna
+Remotes:
+	github::rstudio-education/gradethis,
+	github::SNAnalyst/SNA4DSData
+Suggests:
+	desc,
+	fs,
+	rlang,
+	rprojroot,
+	usethis
+License: AGPL (>= 3) + file LICENSE
