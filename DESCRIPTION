@@ -21,13 +21,15 @@ BugReports: https://github.com/SNAnalyst/bootcamp2021/issues
 RoxygenNote: 7.1.1
 Imports:
     glue,
+    graphics,
     gradethis,
-	influenceR,
-	knitr,
+    influenceR,
+    knitr,
     learnr,
-	remotes,
+    remotes,
     rmarkdown,
-	rstudioapi,
+    rstudioapi,
+    stats
 Remotes:
 	github::rstudio-education/gradethis,
 Suggests:
