@@ -18,12 +18,12 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/SNAnalyst/bootcamp2021
 BugReports: https://github.com/SNAnalyst/bootcamp2021/issues
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Imports:
     glue,
     graphics,
     gradethis,
-    influenceR,
+    jtools,
     knitr,
     learnr,
     remotes,

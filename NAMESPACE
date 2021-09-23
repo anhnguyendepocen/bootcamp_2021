@@ -2,4 +2,5 @@
 
 export(bootcamp2021_tutorials)
 export(check_bootcamp)
+export(coefplot_lm)
 export(open_bootcamp2021_vignettes)
