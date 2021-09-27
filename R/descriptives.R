@@ -19,8 +19,10 @@
 #' \item{sd}{standard deviation}
 #' \item{se}{standard error}
 #' \item{coefvar}{ceofficient of variation: sd/mean}
-#' \item{skewness}{Second item}
-#' \item{kurtosis}{Second item}
+#' \item{skewness}{skewness}
+#' \item{kurtosis}{kurtosis}
+#' \item{normal.w}{Shapiro-Wilk test of normality}
+#' \item{normal.p}{p-value of Shapiro-Wilk test of normality}
 #' \item{min}{minimum}
 #' \item{max}{maximum}
 #' \item{median}{median}
@@ -33,7 +35,7 @@
 #' @param x A data frame, vector, or matrix
 #' @param na.rm logical, \code{na.rm = FALSE} will delete the case in the 
 #' computation of statistics such as \code{mean}, \code{sd}, et cetera
-#' @param skew logical, if \code{TRUE} (the default) skewness and kurtosis are computed
+#' @param normal logical, if \code{TRUE} skewness and kurtosis are computed and the Shapiro-Wilk test of normality.
 #' @param ranges logical, if \code{TRUE} (the default) min, max, range, 
 #' mad, median are computed
 #' @param trim numeric between 0 and 1 (default trim = .1) –- drops the top and 
@@ -72,7 +74,7 @@
 #' descriptives(bootcamp2021::movie, quantiles = c(.1, .9), IQR = TRUE)
 descriptives <-function (x,
                           na.rm = TRUE,
-                          skew = TRUE,
+                          normal = FALSE,
                           ranges = TRUE,
                           trim = .1,
                           fast = NULL,
@@ -115,7 +117,7 @@ descriptives <-function (x,
   }  #the default is to use fast for large data sets
   
   if (fast) {
-    skew <- FALSE
+    normal <- FALSE
   }
   
   if (ncol(x) < 2)  { 
@@ -170,9 +172,35 @@ descriptives <-function (x,
   stats$se <- suppressWarnings(stats$sd/sqrt(stats$n_valid))
   stats$coefvar <- suppressWarnings(stats$sd/stats$mean)
   
-  if (skew) {
+  if (normal) {
     stats$skewness <- suppressWarnings(apply(x, 2, skewness, na.rm = na.rm))
     stats$kurtosis <- suppressWarnings(apply(x, 2, kurtosis, na.rm = na.rm))
+    
+    
+    klassen <- sapply(x, class)
+    lijst <- lapply(1:length(klassen), function(z) {
+      if (klassen[z] == "numeric") {
+        stats::shapiro.test(x[, z])
+      } else {
+        NA
+      }
+    })
+    
+    stats$normal.w <- sapply(lijst, function(z) {
+      if (length(z) == 4) {
+        unname(z$statistic)
+      } else {
+        NA
+      }
+    })
+    
+    stats$normal.p <- sapply(lijst, function(z) {
+      if (length(z) == 4) {
+        unname(z$p.value)
+      } else {
+        NA
+      }
+    })
   }
   
   if (ranges) {
@@ -205,7 +233,7 @@ descriptives <-function (x,
   all_stats_possible <- c(
     "column", "n_valid", "n_na", 
     "mean", "trimmed_mean", "sd", "se", "coefvar")
-  if (skew) {all_stats_possible <- c(all_stats_possible, "skewness", "kurtosis")}
+  if (normal) {all_stats_possible <- c(all_stats_possible, "skewness", "kurtosis", "normal.w", "normal.p")}
   if (ranges) {all_stats_possible <- c(all_stats_possible, "min", "max")}
   if (ranges + !fast == 2) {all_stats_possible <- 
     c(all_stats_possible, "median", "range", "mad")}

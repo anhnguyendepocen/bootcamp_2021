@@ -7,7 +7,7 @@
 descriptives(
   x,
   na.rm = TRUE,
-  skew = TRUE,
+  normal = FALSE,
   ranges = TRUE,
   trim = 0.1,
   fast = NULL,
@@ -25,7 +25,7 @@ descriptives(
 \item{na.rm}{logical, \code{na.rm = FALSE} will delete the case in the 
 computation of statistics such as \code{mean}, \code{sd}, et cetera}
 
-\item{skew}{logical, if \code{TRUE} (the default) skewness and kurtosis are computed}
+\item{normal}{logical, if \code{TRUE} skewness and kurtosis are computed and the Shapiro-Wilk test of normality.}
 
 \item{ranges}{logical, if \code{TRUE} (the default) min, max, range, 
 mad, median are computed}
@@ -82,8 +82,10 @@ Currently implemented:
 \item{sd}{standard deviation}
 \item{se}{standard error}
 \item{coefvar}{ceofficient of variation: sd/mean}
-\item{skewness}{Second item}
-\item{kurtosis}{Second item}
+\item{skewness}{skewness}
+\item{kurtosis}{kurtosis}
+\item{normal.w}{Shapiro-Wilk test of normality}
+\item{normal.p}{p-value of Shapiro-Wilk test of normality}
 \item{min}{minimum}
 \item{max}{maximum}
 \item{median}{median}
