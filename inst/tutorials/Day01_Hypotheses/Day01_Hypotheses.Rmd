@@ -1,0 +1,884 @@
+---
+title: "Day 01 -- Hypothesis & the Linear Model"
+description: "Hypothesis Testing on the context of OLS"
+output: 
+  learnr::tutorial:
+    fig_caption: no
+    progressive: true
+    allow_skip: true
+    toc: true
+    toc_depth: 3
+    theme: readable
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(gradethis)
+
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+
+source("../R/helper_code.R")
+
+# Check whether required packages are installed
+pkgs <- matrix(c(
+  "learnr", "0.10.0", "CRAN",
+  "gradethis", "0.2.3.9001", "rstudio/gradethis",
+  "outliertree", "1.7.4", "CRAN"
+), byrow = TRUE, ncol = 3) |> 
+  as.data.frame() |> 
+  setNames(c("pkg", "version", "where"))
+
+check_pkgs <- function(.pkgs = pkgs) {
+  bootcamp2021:::check_packages(.pkgs)
+}
+
+# RStudio, at least 4.1717
+check_RStudio <- function(x = 4.1717) {
+  bootcamp2021:::check_rstudio(x)
+}
+
+
+# R check version (required 4.1.1)
+check_R <- function(x) {
+  bootcamp2021:::check_r_equal(4, 1.1)
+}
+```
+
+
+```{css, echo = FALSE}
+.tip {
+  border-radius: 10px;
+  padding: 10px;
+  border: 2px solid #136CB9;
+  background-color: #136CB9;
+  background-color: rgba(19, 108, 185, 0.1);
+  color: #2C5577;
+}
+
+.warning {
+  border-radius: 10px;
+  padding: 10px;
+  border: 2px solid #f3e2c4;
+  background-color: #f3e2c4;
+  background-color: rgba(243, 226, 196, 0.1);
+  color: #775418;
+}
+
+.infobox {
+  border-radius: 10px;
+  padding: 10px;
+  border: 2px solid #868e96;
+  background-color: #868e96;
+  background-color: rgba(134, 142, 150, 0.1);
+  color: #2F4F4F;
+}
+
+# # create a horizontal scroll bar when code is too wide
+# pre, code {white-space:pre !important; overflow-x:auto}
+```
+
+```{html, echo = FALSE}
+<style>
+pre {
+  white-space: pre-wrap;
+  background: #F5F5F5;
+  max-width: 100%;
+  overflow-x: auto;
+}
+</style>
+```
+
+
+
+## Introduction
+
+In this tutorial, you are going to learn how to do OLS in `r rproj()`. 
+
+While you are at it, you'll learn a couple of additional tricks 
+and will get to solidify your understanding of the stuff that 
+was discussed in the lecture. 
+
+Let's start doing the heavy lifting in this bootcamp.
+
+Pure fun!
+
+![](images/weight_lift.gif)
+
+
+## Checking installation
+
+Before we run these tutorials, we first quickly 
+make sure you have all of the required packages installed 
+for this tutorial.
+
+### R Version 
+
+You need to have installed R version 4.1.1 and this tutorial is going to check it
+for you. Please hit the `Run Code` button.
+
+```{r r_check, echo = TRUE, include = TRUE, exercise = TRUE}
+check_R()
+```
+
+
+### R Studio Version
+
+You need to have installed RStudio version 1.4.1717 or above.
+Let's check by clicking `Run Code`:
+
+```{r rstudio_check, echo = TRUE, include = TRUE, exercise = TRUE}
+check_RStudio()
+```
+
+
+### Packages
+
+You need to have a few packages installed. 
+Click the `Run Code` to check. 
+It will check whether you have the required packages installed and will 
+attempt to install any missing packages in case there are any.
+
+```{r package_check, echo = TRUE, include = TRUE, exercise = TRUE}
+check_pkgs()
+```
+
+
+
+## Guided example
+
+Let's start with describing the data set.
+
+The data we will work with is called "Amazon" and is 
+included in bootcamp package. Let's load it. 
+
+```{r load_amazon, include = FALSE}
+amazon <- bootcamp2021::amazon
+```
+
+
+```{r amazon, echo = TRUE, include = TRUE, exercise = TRUE}
+data(amazon, package = "bootcamp2021")
+amazon
+```
+
+The data refer to experiments regarding three Amazon 
+logos. The intent was to check which logo would entice
+consumers to buy the most from Amazon: the original 
+logo or one of two others?
+
+Let's look at the three logos:
+
+```{r amazon_logo_pic, fig.width = 500}
+knitr::include_graphics('images/Amazon_logo_variations.png')
+```
+
+Which one makes you grab your wallet the most?<br>
+(can you spot the differences? They are minor...)
+
+### Modeling process
+
+The general process of fitting linear model is 
+as follows. 
+
+1. First, we look at the data to see if it looks the 
+way we expect. It also helps us to learn a bit about 
+how they are distributed. Look at some numeric 
+descriptives and some plots.<br>
+If we find any problems or see any surprising 
+observations, we look at those in more detail 
+(and repair any errors) before fitting an actual model.
+
+1. Second, we build the model we are interested in. 
+Often, we will build multiple models and compare them.
+
+1. Third, we consider the diagnostics of the various 
+models: we check the fit to the data and whether 
+the underlying model assumptions appear to be 
+supported.
+
+
+
+### Look at the data
+
+For further info about the dataset, check out the 
+help for it.
+
+```{r amazon_check, echo = TRUE, include = TRUE, exercise = TRUE, exercise.setup = "load_amazon"}
+# look at the help file, depending on your browser this 
+# will probably open the help in a separate browser tab
+?bootcamp2021::amazon
+?amazon
+```
+
+Now, we take a quick look at the data. In the 
+bootcamp session on "data descriptives" you will learn 
+more about what to look for. SO, for now, we'll 
+just do the minimal basics.
+
+```{r amazon_summary, echo = TRUE, include = TRUE, exercise = TRUE, exercise.setup = "load_amazon"}
+bootcamp2021::descriptives(amazon, omit_nonnumeric = TRUE, 
+                           skew = FALSE)
+```
+
+A quick plot to see the variable distributions 
+and the correlations between the variables:
+
+```{r amazon_summary_plot, echo = TRUE, include = TRUE, exercise = TRUE, exercise.setup = "load_amazon"}
+bootcamp2021::betterpairs(amazon)
+```
+
+And, finally, let's see if there are some odd observations:
+
+```{r amazon_outliers, echo = TRUE, include = TRUE, exercise = TRUE, exercise.setup = "load_amazon"}
+outliertree::outlier.tree(amazon)
+```
+
+Phew, nothing out of the ordinary, it looks like. 
+
+Let's start to build an OLS model.
+
+## Building a formula
+
+When you run any type of model in `r rproj()`, you need
+to tell it which variables to include and how you want 
+to use them: as linear additions, interactions, 
+transformations (logarithmic, power transforms, 
+mean centered, etc.), grouping, andsoforth.
+
+Let's discuss how to do this.
+
+### Formula syntax
+
+The models fit by, e.g., the `lm` and `glm` functions are specified in a compact symbolic form. 
+
+|  operator|  example|  meaning|
+|:--:|:--|:--|
+|  ~|  y ~ x|  Model y as a function of x|
+|  +|  y ~ a + b|  Include columns a as well as b|
+|  -|  y ~ a - b|  Include a but exclude b|
+|  :|  y ~ a : b|  Estimate the interaction of a and b|
+|  *|  y ~ a * b|  Include columns as well as their interaction<br>(that is, y ~ a + b + a:b)|
+|  1|  y ~ 1|  Include only the intercept, but no other variables|
+| \||  y ~ a \| b|  Estimate y as a function of a conditional on b|
+|  .|  y ~ .|  Include all variables in the dataset|
+
+
+
+### The `lm` function
+
+You run OLS with the `lm` function. The usage is
+
+```r
+lm(formula, data, subset, weights, na.action,
+   method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
+   singular.ok = TRUE, contrasts = NULL, offset, ...)
+```
+
+but you really only need to consider this:
+
+```r
+lm(formula, data, subset, na.action)
+```
+
+- The `formula` part is where you include the formula in the way 
+we just discussed. 
+
+- `data` is the name of the dataset
+
+- `subset` allows you to fit the model on a subset of the observations, rather 
+than to all of them
+
+- `na.action` helps you define what to do with missings (ie. `NA`'s) in your 
+dataset. YOu need to do something with them, because the method doesn't know 
+what to do with them otherwise.<br>
+Useful options include:
+  + `na.action = na.fail`. This is the default: you will get an error that 
+  there are missings in the data.
+  + `na.action = na.omit`. This will remove each observation entirely for which 
+  one of the variables in the model has a missing value. In other words, the 
+  model is run on complete cases only.
+  + also useful can be to write your own function about what needs to be 
+  done with missings. 
+
+
+Let's say we have a dataframe called `salesdata` 
+that contains the variables `sales`, `advertising`, `airplay`, and `popularity`. 
+See if you can answer the questions below correctly.
+
+```{r quiz_formula}
+quiz(
+  question("How do you regress `sales` on `advertising` and `airplay`?",
+    answer("lm(sales = advertising + airplay)"),
+    answer("lm(sales ~ advertising + airplay)", message = "This DOES work if 'sales', 'advertising' and 'airplay' are all loaded in your workspace, but if they are not there--or have a different contact than the variables inside the 'salesdata' object, this will not work"),
+    answer("lm(sales ~ advertising + airplay, data = salesdata)", correct = TRUE),
+    answer("lm(sales ~ advertising * airplay, data = salesdata)")
+  , allow_retry = TRUE),
+  question("How do you regress `sales` on `advertising`, `airplay`, and `popularity`?<br>(check all that apply)",
+    answer("lm(sales ~ . , data = salesdata)", correct = TRUE),
+    answer("lm(sales ~ advertising + airplay + popularity, data = salesdata)", correct = TRUE),
+    answer("lm(sales ~ advertising * airplay * popularity, data = salesdata)"),
+    answer("lm(sales ~ salesdata)")
+  , allow_retry = TRUE)
+)
+```
+
+## Application to the dataset
+
+OK, now we go back to the Amazon experiment and the `amazon` dataset.  
+You know, the experiment where we find out how to separate you from as much money as possible.
+
+Run an OLS regression where you model `sales_after` as a function of only an intercept. 
+Save the result to an object called `mod_intcp` and then run `summary` on this to 
+see a nice overview of the findings.
+
+```{r, amazon_exc_1, exercise = TRUE, exercise.lines = 2, exercise.setup = "load_amazon"}
+
+
+```
+
+```{r, amazon_exc_1-hint-1}
+# The intercept is denoted by '1'
+```
+
+```{r, amazon_exc_1-hint-2}
+# Make sure to include the dataset name 'amazon'
+```
+
+```{r, amazon_exc_1-hint-3}
+lm(after_sales ~ 1, data = amazon)
+```
+
+```{r, amazon_exc_1-solution}
+mod_intcp <- lm(after_sales ~ 1, data = amazon)
+summary(mod_intcp)
+```
+
+
+This is the simplest regression model possible. You could have predicted 
+the result before hitting the 'run' button. How? See the follow quiz question.
+
+```{r quiz_ols_mean, echo = FALSE}
+quiz(
+  question("What is the mean of `after_sales` in the dataset?",
+    answer("-577.48"),
+    answer("587.48", correct = TRUE),
+    answer("36.52"),
+    answer("118"),
+    correct = "Correct - in the intercept-only model, the regression is equal to the mean of the variable!",
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  )
+)
+```
+
+Now, run a model where you explain `after_sales` as a linear function of 
+`before_sales` and `logo`. Write the result to `mod_2` and use 
+`summary` to see the results. 
+
+
+```{r, amazon_exc_2, exercise = TRUE, exercise.lines = 2, exercise.setup = "load_amazon"}
+
+```
+
+```{r, amazon_exc_2-solution}
+mod_2 <- lm(after_sales ~ before_sales + logo, data = amazon)
+summary(mod_2)
+```
+
+Hey, do you see that? The intercept is automatically included!<br>
+Being a very professional statistics environment, `r rproj()` knows that 
+the lower-level should always be included. 
+So, when you include, one or more variables, `r rproj()` will add the 
+intercept for you. You can override this by specifying<br>
+`lm(after_sales ~ -1 + before_sales + logo, data = amazon)`<br>
+but why would you?
+
+### Interpretation
+What does the coefficient of -249 for `logo2` mean?<br>
+Well, let's look at the `logo` variable first. 
+
+```{r, amazon_logo, exercise = TRUE,exercise.setup = "load_amazon"}
+# The summary:
+summary(amazon$logo)
+
+# Logo has the following class:
+class(amazon$logo)
+
+# is logo ordinal or nominal?
+is.ordered(amazon$logo)
+
+# what are the categories of 'logo'?
+levels(amazon$logo)
+```
+
+So, logo is a factor with three values. There is no order, since it makes 
+no sense to claim that logo2 is larger or smaller than logo3. 
+This is a purely nominal variable, where the actual values 1, 2, 3 do not 
+have any meaning beyond distinguishing which logo the observation refers to.
+
+Actually, we could have coded `logo` as -999, pi, 6666 or as "A", "B", "X" 
+or as "green", "blue", "orange_with_just_a_hint_of_brown" or whatever. <br>
+The values only encode the 
+specific condition the consumer was in--different numbers refer to
+different conditions. 
+
+In order to run a meaningful analysis, you need two dummies. 
+Here, logo1 is the "reference" category. 
+
+- When an observation refers to logo1, both dummies are 0. 
+
+- When an observation refers to logo2, the dummy for logo2 is 1 
+and the dummy for logo3 is 0. 
+
+- When an observation refers to logo3, the dummy for logo2 is 0 
+and the dummy for logo3 is 1. 
+
+You do not need three dummies (in fact, this creates a mathematical problem--
+although many machine learning algorithms neglect this issue), because all 
+conditions are fdully defined by only 2 dummies. This is generally true, 
+when a factor (ordered or non-ordered) has *n* categories, you need 
+exactly *n-1* dummies.<br>You'll learn more about this later in the bootcamp.
+
+<div class="tip">
+Anyway, you saw that the class of `logo` is `factor`. Our beloved software 
+program `r rproj()` is so smart, that it automatically turns the factor into 
+two dummies and uses those inside the model. Most other statistical softwares 
+force you to manually add dummies to the dataset and then use those. 
+*__That is silly!__* It only blows up the dataset and serves no purpose other 
+than **you** doing the work that the **software** should be doing for you. 
+It is nice to work with `r rproj()`, because it is there to serve you (rather 
+than the other way around). 
+<br><br>
+
+Feel free to applaud your computer now. No worries, nobody is watching you.<br>
+</div>
+
+<br><br>
+<bold>
+<span style='background:yellow'>Yeah yeah, get on with it already! You were going to explain what 
+the coefficient of -249 for `logo2` means!</span>
+</bold>
+
+Well, when we have the old logo, the model we just estimated is
+
+$$
+\text{after_sales} = 768.60 - .02*\text{before_sales} -249.61*0 - 260.46*0 + error
+$$
+In the condition with logo2, we have
+$$
+\text{after_sales} = 768.60 - .02*\text{before_sales} - 249.61*1 - 260.46*0 + error
+$$
+In the condition with logo3, we have
+$$
+\text{after_sales} = 768.60 - .02*\text{before_sales} + - 249.61*0 - 260.46*1 + error
+$$
+Finally, we are in the position to draw our conclusion. 
+Let's say we had a consumer with `before_sales` of $500. 
+Then, this consumer is expected to spend 
+768.60 -.02*500 = 758.60 USD when being confronted with 
+logo1 (= the original logo). 
+If this same consumer would always see logo 2, she would 
+spend 768.60 -.02*500 - 249.61 = 508.99 USD on average. 
+
+This is less! That is 249.61 less, to be exact. Hmm, a familiar 
+number, wouldn't you say?
+
+In other words, the coefficient for `logo2` is the difference 
+in `after_sales` of logo2 compared to logo1 (= the reference category). 
+Similarly, the coefficient for `logo3` is the difference 
+in `after_sales` of logo2 compared to reeference category logo1. 
+
+
+```{r quiz_amazon_intrp}
+quiz(
+  question("How much do you expect a consumer to spend who is in the 'logo3' condition and spent a total of 100$ in the past?",
+    answer("about 260"),
+    answer("about -260"),
+    answer("about 506", 
+           correct = TRUE, 
+           message = "768.60 -.02*100 - 260.46"),
+    answer("about 248"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  ),
+  question("Is the effect of logo2 statistically significant?",
+    answer("yes", correct = TRUE, 
+           message = "Of course, this depends on the significance level 
+           you decided on before running the model. In this case, 
+           you would need to use an extraordinarily small significance 
+           level for this effect not to be statistically significant"),
+    answer("no"),
+    answer("strongly", message = "There is no such thing as 
+           'weakly significant', 'strongly significant', 
+           'barely significant', etc., an effect is simply
+           statistically significant or not."),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  ),
+  question("What does 2e-16 mean?",
+    answer("0.0000000000000002", correct = TRUE, 
+           message = "That is 15 zeroes"),
+    answer(".216"),
+    answer(".0002"),
+    answer(".016"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  ),
+  question("At what significance level would we say that 'before_sales' 
+           is statistically significant?",
+    answer(".1621", correct = TRUE, 
+           message = "This would occur for any level larger than 0.162"),
+    answer(".10"),
+    answer(".20"),
+    answer(".2e-16"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  ),
+  question("What will be the expected difference in spending between logo2 and logo3?",
+    answer("10.85 in favor of logo2", correct = TRUE, 
+           message = "-249.61 + 260.46 = 10.85"),
+    answer("10.85 in favor of logo3", message = "Almost there, but logo3 yields lower 
+           sales than logo2, you can see that from the regression coefficients"),
+    answer("+249.61"),
+    answer("+260.46"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  )
+)
+```
+
+For this last question, you could reorder the levels of `logo` and make `logo2` 
+or `logo3` the reference category. You can then find the expected sales difference
+in the `lm` output. But you can already tell from the current estimates what 
+the result is. The only advantage of running that new regression model is that 
+you can test whether the difference is statistically significant (but a little bit 
+of knowledge of statistical intuition already tells you that this is not the case) .
+
+### Model of change in sales
+
+Now, let's put some things together.<br>
+We built a model of `after_sales`, but this makes little sense: we 
+are interested to see if the logo change leads to increased (or decreased)
+sales. In other words, we need a new dependent variable.<br>
+Below, do the following:
+
+1. Create a new variable inside the `amazon` dataset that is 
+`after_sales` - `before_sales` and call it `change_sales`. 
+
+2. Run an OLS model where you regress `change_sales` on `logo`, 
+`country`, `age`, `sex`, and the interaction between `age` and `sex`.
+
+```{r, amazon_change, exercise = TRUE, exercise.lines = 6, exercise.setup = "load_amazon"}
+
+
+```
+
+```{r, amazon_change-hint-1}
+amazon$change_sales <- amazon$after_sales - amazon$before_sales
+```
+
+```{r, amazon_change-hint-2}
+# When using 'A*B' you get A, B, and B:C
+logo + country + age*sex
+# same thing, just a little longer
+logo + country + age + sex + age:sex
+```
+
+
+```{r, amazon_change-solution}
+# just one way of doing this
+amazon$change_sales <- amazon$after_sales - amazon$before_sales
+mod_change <- lm(change_sales ~ logo + country + age*sex, data = amazon)
+summary(mod_change)
+```
+
+
+```{r quiz_amz_change}
+quiz(
+  question("What does the 'country1' coefficient mean?",
+    answer("On average, the change in sales is $25 for UK customers"),
+    answer("On average, the change in sales is $25 for US customers"),
+    answer("On average, the change in sales is $25 less for UK customers than for US customers", correct = TRUE),
+    answer("On average, the change in sales is $25 less for US customers than for UK customers", 
+           message = "If not otherwise specified, the lowest value is the reference category, 
+           this is why the variable is called 'country1' in the output. The -24.92 means that 
+           country = 1 (which is the UK) has a lower predicted sales change than that of 
+           the reference category (which is the US"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  ),
+  question("If we use a 95% confidence level, would we conclude that the change in sales 
+           differs between the UK and US customers at a statistically significant level?",
+    answer("no", correct = TRUE, message = "The p-value of 0.07 is larger that the 
+           significance level of 0.05, so we conclude that there is no 
+           statistically significant difference."),
+    answer("yes", message = "Make sure to compare the significance level with the p-value"),
+    answer("There is not enough info in this table"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  ),
+  question("Suppose that we want to test the hypothesis that the change in sales 
+           for UK customers is smaller than for US customers. We test using 
+           a significance level of .05.<br>Do we reject our null hypothesis (based 
+           on the results above) or not?",
+    answer("yes", correct = TRUE, message = "Great work! This is a single-sided 
+           hypothesis, so you compare the p-value of 0.07 with a single-sided significance 
+           level of 2*0.05 = 0.10, so we conclude that there is indeed a 
+           statistically significant difference in favor of the UK."),
+    answer("no", message = "Check the hypothesis again, what is the null hypothesis 
+           in this case? Hint: it is NOT H0: difference between UK and US is zero."),
+    answer("There is not enough info in this table"),
+    random_answer_order = TRUE,
+    allow_retry = TRUE
+  )
+)
+```
+
+### Diagnostics
+
+```{r models}
+amazon <- bootcamp2021::amazon
+mod_intcp <- mod_intcp <- lm(after_sales ~ 1, data = amazon)
+mod_2 <- lm(after_sales ~ before_sales + logo, data = amazon)
+mod_3 <- lm(after_sales ~ before_sales + logo + country + age*sex, data = amazon)
+
+amazon$change_sales <- amazon$after_sales - amazon$before_sales
+mod_change <- lm(change_sales ~ logo + country + age*sex, data = amazon)
+```
+
+Let us run one final model: 
+
+```{r mod_3, exercise = TRUE, exercise.setup = "load_amazon"}
+mod_3 <- lm(after_sales ~ before_sales + logo + country + age*sex, data = amazon)
+summary(mod_3)
+```
+
+We now have three models that aim to explain `after_sales`:
+
+```r
+mod_intcp <- mod_intcp <- lm(after_sales ~ 1, data = amazon)
+mod_2 <- lm(after_sales ~ before_sales + logo, data = amazon)
+mod_3 <- lm(after_sales ~ before_sales + logo + country + age*sex, data = amazon)
+```
+
+Let's look at the diagnostic plots for model `mod_3`.
+
+```{r mod_3_plot, exercise = TRUE, exercise.setup = "models"}
+plot(mod_3)
+```
+
+What can we conclude?
+
+
+```{r plot_quiz}
+quiz(
+  question("What can we conclude from the 'Residual-vs-fitted' plot?",
+    answer("Looks great", correct = TRUE, 
+           message = "There is no pattern, this is what we want"),
+    answer("This seems off, it is not OK"),
+    allow_retry = TRUE
+  ),
+  question("What can we conclude from the 'Q-Q' plot?",
+    answer("Looks great"),
+    answer("This seems off, it is not OK", correct = TRUE,
+           message = "Do you see how the disturbances move 
+           away from the diagonal at the top-right and 
+           bottm-left? It is not terrible, but we do need 
+           some caution."),
+    allow_retry = TRUE
+  ),
+  question("What can we conclude from the 'Scale-Location' plot?",
+    answer("Looks great", correct = TRUE, 
+           message = "We are dealing with two groups of
+           points, because of the categorical X's. 
+           This makes it hard to interpret. It *may* be 
+           that the variance is lower on the right hand of 
+           the plot than on the left, but this may just 
+           be an illusion. Anyway, something to look out 
+           for, but overall no reason for much alarm."),
+    answer("This seems off, it is not OK"),
+    allow_retry = TRUE
+  ),
+  question("What can we conclude from the 'Residual-vs-leverage' plot?",
+    answer("Looks great", correct = TRUE, 
+           message = "We don't even see any Cook's distance 
+           lines in the plot. All is just dandy."),
+    answer("This seems off, it is not OK"),
+    allow_retry = TRUE
+  )
+)
+```
+
+### Comparison
+
+We have a few models and there are two ways to compare them.
+
+1. First, and this is often the best way--although data
+scientists tend to find it not cool--is to look at the models 
+from the viewpoint of model interpretability and field
+expertise.<br>
+This makes us prefer `mod_2`, because it is easy to understand
+and the additional variables in `mod_3` don't seem to do 
+much anyway.
+
+1. Second, we can quantitatively compare the models. 
+
+One way to do this is to use the `bootcamp2021::compareLM` 
+function, which shows you a bunch of fit measures to compare. 
+Let's do this:
+
+```{r mod_3_compareLM, exercise = TRUE, exercise.setup = "models"}
+bootcamp2021::compareLM(mod_2, mod_3)
+```
+
+We did not add `mod_intcp`, because that is a so-called 
+*empty model* that can't be compared this way (and, as a 
+result, causes an error if you attempt the comparison anyway).
+
+As you see, there is little that distinguishes these two models. You want the AIC and BIC to be as low as possible, where the BIC 
+is slightly to be preferred over AIC, as it favors smaller models. The BIC prefer `mod_2` over `mod_3`, but the 
+difference in BIC is very small.
+
+If you would be interested in pure fit to the data, then 
+`mod_3` actually does slightly better than `mod_3`. 
+See: R-squared and the Adjusted R-squared.
+
+We can, in fact, test models against each other directly. 
+We do this using analysis of variance. In a later bootcamp 
+session, you will learn a lot about ANOVA and ANCOVA, so 
+let's just do it here and leave the model explanation to 
+another session.
+
+```{r mod_3_anova, exercise = TRUE, exercise.setup = "models"}
+bootcamp2021::compareLM(mod_intcp, mod_2, mod_3)
+```
+
+<div class="warning">
+You can only do this when models are *nested*: one models is 
+a simplified version of another. 
+By 'nested,' we mean that the explanatory variables of 
+the simple model will be a subset of the more complex model. 
+In essence, we try to find the best parsimonious fit 
+of the data. 
+Note that we should fit the models on the same dataset.
+
+The Null Hypothesis is that the simple model is better and we
+reject the null hypothesis if the *p*-value is less than 
+the chosen significance level, inferring that the complex model
+is statistically significantly better than the simple one.
+</div>
+
+<br>
+In this case, `mod_3` is 
+nested inside `mod_2`: just remove `country`, 
+`age` and `sex`, and you get `mod_2`. 
+Obviously, `mod_intcp`
+is an even simpler version. So, we can use `anova`.
+
+Make sure to enter the models in increasing order: 
+we start with the simplest model, then a more extended version, 
+then an even more extended version, et cetera.
+
+How do we interpret the result? 
+The null hypothesis is that the larger model does not 
+do any better than the smaller one.
+Well, line 2 says that 
+`mod_2` is statistically significantly better than 
+`mod_intcp`, with a *p*-value of <2e-16. 
+We reject the null and continue with `mod_2`.
+
+Then, line 3 compares `mod_2` with the larger `mod_3`. 
+Here, we get a *p*-value of 0.3588, which means that we 
+can not reject the null hypothesis that `mod_2` 
+and `mod_3` fit the data equally well.
+
+So, based on this, we prefer `mod_2`.
+
+
+### Road ahead
+
+That was nice work. Does your head hurt? Great, it means you are learning 
+something! `r smilebeam(height = 2)`
+
+## Unguided analysis
+
+Now, you are ready for the real work. Show me your raw
+statistical power!
+
+![](images/powerlift.jpg)
+
+### The dataset
+
+The dataset we will use is the `centrality` dataset from the `bootcamp2021` package. 
+
+This is a dataset where researcher were interested in which 
+personal characterics make one person get to a more central 
+position in a network in a company than other people. 
+
+The dataset contains data on 850 employees of a company and 
+includes their 
+
+- demographics: *education*, *race*, *gender*, *age*
+
+- Big Five personality traits OCEAN (see here [in English](https://en.wikipedia.org/wiki/Big_Five_personality_traits) or [in Dutch](https://nl.wikipedia.org/wiki/Big_five_(persoonlijkheidstrekken)) for more detail on these traits, if you are interested)
+
+- the personality trait *activity_preference*
+
+- measures of the extent to which they are surrounded by 
+colleagues of the same gender or race as themselves
+
+Furthermore, three centrality scores are in the data: 
+advice, friendship, and adversion. The centralities are 
+measured through *indegree*.
+
+<div class="infobox">
+HERE IS THE EXERCISE:
+
+1. Start with loading the data and exploring it.
+
+1. Now, pick one of the centralities: `advice`, `friendship`, 
+or `adverse`and use that as the dependent variable you want 
+to explain.
+
+1. Build several regression models, with varying levels of 
+complexity.<br>
+Experiment with interactions and transformations, so you 
+become really good at doing this in `r rproj()`.<br>
+That will only benefit you.
+
+1. Look at the diagnostic plots to check for anything fishy.
+
+1. Compare multiple models based on theory or field 
+expertise and compare the models based on quantitative 
+measures.
+
+1. Really take the time to play with the data and with the 
+modeling. Future-You will thank you for it, as you will 
+learn a fluency in `r rproj()` that will benefit you for 
+the rest of the week, the rest of the semester, and many 
+years to come. 
+
+1. Ask for help if you run into a challenge you can't resolve.
+
+1. Have any further questions, comments, and stories to share 
+in tomorrow's feedback session.
+
+1. And, most importantly, ENJOY!
+</div>
+
+<br>
+
+![](images/lion.jpg)
+
+
+
+
+
+
+
+

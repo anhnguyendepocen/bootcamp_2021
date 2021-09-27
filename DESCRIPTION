@@ -1,7 +1,7 @@
 Package: bootcamp2021
 Type: Package
 Title: Statistics Bootcamp 2021
-Version: 0.00.1
+Version: 0.00.2
 Authors@R:
 	c(person(given = "Roger",
 					family = "Leenders",
@@ -20,12 +20,14 @@ URL: https://github.com/SNAnalyst/bootcamp2021
 BugReports: https://github.com/SNAnalyst/bootcamp2021/issues
 RoxygenNote: 7.1.2
 Imports:
+    DescTools,
     glue,
     graphics,
     gradethis,
     jtools,
     knitr,
     learnr,
+    outliertree,
     remotes,
     rmarkdown,
     rstudioapi,
