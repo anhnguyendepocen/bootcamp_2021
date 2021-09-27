@@ -1,7 +1,7 @@
 Package: bootcamp2021
 Type: Package
 Title: Statistics Bootcamp 2021
-Version: 0.00.2
+Version: 0.00.3
 Authors@R:
 	c(person(given = "Roger",
 					family = "Leenders",

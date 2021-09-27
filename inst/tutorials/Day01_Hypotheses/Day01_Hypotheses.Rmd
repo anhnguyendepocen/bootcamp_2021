@@ -22,6 +22,8 @@ knitr::opts_chunk$set(
 	warning = FALSE
 )
 
+knitr::knit_engines$set("html") # for linux machines
+
 source("../R/helper_code.R")
 
 # Check whether required packages are installed
@@ -221,8 +223,7 @@ more about what to look for. SO, for now, we'll
 just do the minimal basics.
 
 ```{r amazon_summary, echo = TRUE, include = TRUE, exercise = TRUE, exercise.setup = "load_amazon"}
-bootcamp2021::descriptives(amazon, omit_nonnumeric = TRUE, 
-                           skew = FALSE)
+bootcamp2021::descriptives(amazon, omit_nonnumeric = TRUE)
 ```
 
 A quick plot to see the variable distributions 
@@ -755,7 +756,7 @@ let's just do it here and leave the model explanation to
 another session.
 
 ```{r mod_3_anova, exercise = TRUE, exercise.setup = "models"}
-bootcamp2021::compareLM(mod_intcp, mod_2, mod_3)
+anova(mod_intcp, mod_2, mod_3)
 ```
 
 <div class="warning">
@@ -839,7 +840,8 @@ measured through *indegree*.
 <div class="infobox">
 HERE IS THE EXERCISE:
 
-1. Start with loading the data and exploring it.
+1. Start with loading the data and exploring it (I suggest you 
+do this inside RStudio, not inside this tutorial window).
 
 1. Now, pick one of the centralities: `advice`, `friendship`, 
 or `adverse`and use that as the dependent variable you want 
