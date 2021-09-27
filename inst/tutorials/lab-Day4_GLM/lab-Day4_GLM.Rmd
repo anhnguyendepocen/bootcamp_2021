@@ -1,0 +1,473 @@
+---
+title: "Lab Day 4 - GLM"
+description: "Day 4: Generalized Linear Models - Binomial Link Function"
+output: 
+  learnr::tutorial:
+    fig_caption: no
+    progressive: true
+    allow_skip: true
+    toc: true
+    toc_depth: 3
+    theme: readable
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(gradethis)
+tutorial_options(exercise.checker = gradethis::grade_learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+
+```{r}
+exp(predict(glm1)[1])/ (1 + exp(predict(glm1)[1])) == fitted(glm1)[1]
+```
+
+exercise
+dummyfy PolPref
+reduce PolPref categories to 3
+ 
+## Logit
+
+ERG models conceptualize their outcome variable as 
+
+* absence 
+or 
+* presence 
+
+of an edge between each pair of node in a given network. This set up makes 
+the outcome variable binary and makes them very comparable to logistic 
+regression, a class of models that focuses of dummy outcome variables. 
+
+Dummy is as nick name for a binary categorical variable such as 
+
+* yes or no
+* black or white
+* win or lose
+* ...
+
+* edge or no edge
+
+In `r` you fit a logit model using the `glm` function that belongs to r
+base. `glm` stands for generalized linear model. 
+
+Now we know two crucial things about logit models
+
+* they have a dummy dependent variable
+* they are estimating linear effects. 
+
+When we use statistical models we are referring to the understanding 
+of the reason why we observe something, rather than the observation
+of repeated behaviors (patterns). 
+The study of why something happens is called causal inference, 
+since it deals with inferring (estimating) the cause of some phenomenon
+of interest. 
+
+Logit models as much as ERGMs explain why a network (outcome variable) is the way
+it is, due to some concurrent phenomena that affected it. That's the reason 
+why we say that an explanatory variable predicts an outcome variable. 
+
+Scientists explain phenomena by testing hypotheses. 
+
+* You measure something relevant for you:
+my dog is often barking like crazy 
+
+* You formulate an hypothesis on the reason why he is barking
+He might be hungry
+
+* You test your hypothesis 
+mmm maybe I don't feed him enough... 
+
+* Against a null hypothesis
+My dog is fine and he barks like crazy for fun
+
+He might be barking for many reasons other than being hungry such as that he 
+wants to go for a walk (the phenomenon is more complex), but there is a 
+certain probability associated to your hypothesis being correct. 
+This hypothesis can be numerically tested measuring how many days in a month
+your dog barks like crazy (outcome variable) and how much food he gets every day 
+(explanatory variable). 
+
+This is the hypothesis testing mindset!
+
+
+Let's fit the logit model we discussed in the first ERGM lecture to get 
+a better understanding of causality and ERGMs! oh... and please, if you have 
+a pet, feed her/him!!
+
+```{r}
+A <- structure(list(numeracy = c(6.6, 7.1, 7.3, 7.5, 7.9, 7.9, 8, 
+8.2, 8.3, 8.3, 8.4, 8.4, 8.6, 8.7, 8.8, 8.8, 9.1, 9.1, 9.1, 9.3, 
+9.5, 9.8, 10.1, 10.5, 10.6, 10.6, 10.6, 10.7, 10.8, 11, 11.1, 
+11.2, 11.3, 12, 12.3, 12.4, 12.8, 12.8, 12.9, 13.4, 13.5, 13.6, 
+13.8, 14.2, 14.3, 14.5, 14.6, 15, 15.1, 15.7), anxiety = c(13.8, 
+14.6, 17.4, 14.9, 13.4, 13.5, 13.8, 16.6, 13.5, 15.7, 13.6, 14, 
+16.1, 10.5, 16.9, 17.4, 13.9, 15.8, 16.4, 14.7, 15, 13.3, 10.9, 
+12.4, 12.9, 16.6, 16.9, 15.4, 13.1, 17.3, 13.1, 14, 17.7, 10.6, 
+14.7, 10.1, 11.6, 14.2, 12.1, 13.9, 11.4, 15.1, 13, 11.3, 11.4, 
+10.4, 14.4, 11, 14, 13.4), success = c(0L, 0L, 0L, 1L, 0L, 1L, 
+0L, 0L, 1L, 0L, 1L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 
+1L, 1L, 1L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L)), .Names = c("numeracy", 
+"anxiety", "success"), row.names = c(NA, -50L), class = "data.frame")
+```
+
+
+```{r load_SuccessData, include = FALSE}
+SuccessData <- SNA4DS:::SuccessData
+```
+
+First we take a look at the data
+
+```{r head_success, exercise = TRUE, exercise.setup = "load_SuccessData"}
+
+head(SuccessData)
+nrow(SuccessData)
+
+```
+We have three variables:
+
+* success: whether our respondents are successful or not (dummy)
+* numeracy: how much our respondents are good at math (numeric, continuous)
+* anxiety: how much our respondents are anxious (numeric, continuous)
+
+Having these three pieces of information about 50 respondents, 
+we can ask three 'why' (causal) questions":
+
+* 1. Does the level of success and numeracy predict the presence of anxious thoughts?
+* 2. Does the the level of success and anxiety predict numeracy?
+* 3. Does the level of anxiety and the level of numeracy predict success?
+
+Even if the data allow us to fit three models to address these three research 
+questions, it is not necessarily a good idea to do it. In fact, questions 
+1 and 2 sound a little detached from reality. Why math knowledge should make 
+someone anxious (1)? Why an anxious person should be good at math (2)? 
+Unless we see other evidence, these make no sense.
+
+If you decide to run a model you need to support your question with 
+evidence to persuade your audience that your question makes sense. 
+You also need to provide an attempted answer to your question, informed
+by the literature you read on the topic. That's an hypothesis. 
+
+Now, we move on with question 3 assuming that we spent some time reading on 
+the topic. According to the literature, it is more likely that people good at math
+are successful since knowing math allows you to get good jobs. At the same
+time, if people work really hard to be successful very often they end up being 
+stressed. In accordance, we can formulate the hypothesis:
+
+* H1 The level of anxiety and the level of numeracy are predictors of success.
+
+H1, obviously expects to find effects and it is the opposite of a null hypothesis
+of no effect that we call H0
+
+* H0 The level of anxiety and the level of numeracy are not correlated to success.
+
+H1 is a two tailed hypothesis, since we are not stating whether more anxiety and 
+more numeracy are leading to more success, or the other way around 
+(one tailed options). We are open to both positive and negative correlations.
+
+
+Then we move on fitting a bunch of models to test H1. Since our outcome variable 
+is a dummy, we use a logit model. 
+We add the covariates (explanatory variables) one by one, _nesting_ a series 
+of models. 
+
+First we consider only numeracy as an explanatory variable
+```{r m1_success, exercise = TRUE, exercise.setup = "load_SuccessData"}
+SuccessModel1 <- stats::glm(formula = success ~ numeracy, 
+                            family = binomial(link = logit), 
+                            data = SuccessData)
+summary(SuccessModel1)
+```
+
+To fit a model in `r` you always have to specify a formula. 
+The first variable in the formula is always the outcome variable. Then you 
+insert `~` followed by the explanatory variable(s). 
+We can check the results using the function `summary` from r base
+
+```{r m2_success, exercise = TRUE, exercise.setup = "load_SuccessData"}
+SuccessModel2 <- stats::glm(formula = success ~ numeracy + anxiety, 
+                            family = binomial(link = logit), 
+                            data = SuccessData)
+summary(SuccessModel2)
+```
+
+We can add more covariates (expanatory variables) with the `+` sign.
+
+Model two checks whether respondents that are good at math are successful 
+in parallel of checking weather respondents that are anxious are successful. 
+
+If we want to see weather respondents that are good and math and anxious 
+at the same time are successful, we need to use an interaction. We do that
+adding a third term that multiplies the other two (we could also omit the first 
+two terms since the `glm` function individually considers already the terms 
+specified in the interaction, but it is better to watch every step for now). 
+ 
+
+```{r m3_success, exercise = TRUE, exercise.setup = "load_SuccessData"}
+SuccessModel3 <- stats::glm(formula = success ~ numeracy + anxiety + numeracy * anxiety , 
+                            family = binomial(link = logit), 
+                            data = SuccessData)
+summary(SuccessModel3)
+```
+
+That's the final model we consider this time.
+
+
+## Reading results 
+
+We successfully run our models, but coding is the easy part in this game. 
+The real point is: what do these results mean?
+
+In order to understand our results, it is helpful to print them all in once. 
+We can do that using the function `screenreg` from the `texreg` package that 
+automatically places your nested models' results next to each other, ready for 
+comparison.
+
+Again, you interpret ERGMs results the same way as logit models. 
+Hence, let's learn it with this easy example, so when things get more complicated,
+later, you will know what to do!
+
+
+```{r logit_Models, include = FALSE}
+logitModels <- SNA4DS:::logitModels
+```
+
+After saving our three models results into a list, we pass the list to 
+`screenreg` from the `texreg`package. This package is there with the only goal 
+of printing results for you in several formats, saving you a lot of time. 
+`screenreg` prints it directly in the `r` console, or in this tutorial. 
+Isn't it handy?
+
+Let's first print the results using p-values.
+
+```{r printResPV, exercise = TRUE, exercise.setup = "logit_Models"}
+
+# logitModels <- list(SuccessModel1, SuccessModel2, SuccessModel3)
+texreg::screenreg(logitModels)
+```
+
+First of all note that having our results next to each other helps 
+in getting an overview of our nested models. Model comparison is really 
+important, since our goal it to understand which combination of explanatory 
+variables predicts our outcome variable more accurately. 
+
+### Goodness of Fit for nested models' comparison 
+
+Let's check goodness of fit first. We have three indicators:
+
+* AIC. Akaike information criterion
+* BIC. Bayesian information criterion
+* Log Likelihood
+
+For AIC and BIC, smaller the value better is the model. 
+For Log Likelihood, higher the value better is the model.
+
+In our success case, Model one is definitely the worse among the three. 
+According to both AIC and BIC model two is the best one. According to the 
+log likelihood, Model two and three are equally better than model one.
+
+
+
+### P-values
+
+In frequentist statistics we can talk about results significance to underline 
+the fact that there is a large probability that your result is not random but 
+it is the product of a certain specific phenomena that we observed.
+
+Let's take a look at the results considering p-values. In null hypothesis 
+significance testing, the p-value is the probability of obtaining test results 
+at least as extreme as the results actually observed, under the assumption 
+that the null hypothesis is correct.
+
+This definition is quite hard to get since rather that thinking on the causal 
+effects you need to focus on the absence of effects and this twists your brain.
+
+In practice it means that you want to check on the probability that repeating 
+your observation for a large number of times, let's say 1000, your results are
+special, not at the center of a normal distribution that defines your null 
+hypothesis. If your results 'are not special', are not significant -it means 
+that your cannot reject the null hypothesis since what you are observing looks 
+exactly like H0.
+
+Stars are a convention to present results. In social science one of the most 
+popular convention works as such:
+
+* coef *** means that the probability that the null hypothesis is true is < 0.001
+That's what you want, since it's very unlikely.
+* coef ** means that the probability that the null hypothesis is true is < 0.01
+* coef * means that the probability that the null hypothesis is true is < 0.05
+
+Higher than that, it's considered more likely that the null hypothesis is true 
+and that you found nothing. Keep in mind that these thresholds are very much 
+arbitrary, and they work as rules of thumb.
+
+In our study, model three does not look any different than H0. That combination 
+of variables is very likely to output a distribution that equates to the null 
+distribution.
+
+In model two numeracy has a 95 % probability of being different from H0 (significant), 
+while anxiety has a probability of 99 % of being different from H0 
+(significant). In model one, numeracy has a probability of 99.9 % of being 
+different from H0 (significant).  
+
+* p-value < 0.05 -- 5% prob of being the same as H0 / 95% prob of being able to reject H0
+* p-value < 0.01 -- 1% prob of being the same as H0 / 99% prob of being able to reject H0
+* p-value < 0.001 -- 0.1% prob of being the same as H0 / 99.9% prob of being able to reject H0
+
+Ágain, these thresholds are totally arbitrary.
+Often p-values are used to comment on the extent to which the explanatory 
+variable influences the outcome one. P-value tells us nothing about the 
+intensity of an effect, or about H1. It only informs on the probability that 
+your effect comes from the same distribution that produced H0. You wish it does not. 
+
+### Confidence Intervals
+
+Let's explore confidence intervals instead of p-values.
+`screenreg` also allows us to print confidence intervals
+in place of p-values, by specifying the argument `ci.force = TRUE`.
+
+```{r printResCI, exercise = TRUE, exercise.setup = "logit_Models"}
+
+texreg::screenreg(logitModels, ci.force = TRUE)
+
+```
+
+
+Using confidence intervals we consider that there is an upper and a lower bound. 
+If these two values are both positive or both negative there is a high probability that 
+H1 results look different than H0 results, hence you are able to reject the null.
+
+In this environment, zero is the null value of the parameter. The upper and the 
+lower bound represent a 95% confidence interval in reference to a normal distribution.
+If the confidence interval includes the null value (0), then there is no 
+statistically meaningful or statistically significant difference between the 
+observed data and the data that produce the null (aka it's like random data. 
+No effects in there since it's random, null).
+
+The probability of the observed data to different from the hypothesis of no effects
+(due to some theory driven reasons) are meaningful if the upper and lower 
+bound have the same sign.
+
+While the p-value suggest that significance can be more or less intense, with 
+these stars and a bunch of arbitrary thresholds, the confidence interval 
+provides more careful suggestions on that, a more prudent way of understanding 
+results, that helps to avoid false positives. 
+
+Confidence intervals are not better than p-values per se, but they are good in 
+helping researchers not to rely on the arbitrary thresholds that mean absolutely
+nothing in real life. 
+
+Confidence intervals can also be plotted with the function`plotreg`. 
+A visual understanding of results is always a great help in explaining a
+research's output.
+
+```{r plotRes, exercise = TRUE, exercise.setup = "logit_Models"}
+texreg::plotreg(logitModels)
+```
+`plotreg` makes the interpretation of results even easier by showing significant 
+results in red with the coefficient represented by a circle, and non-significant 
+results in blue with the coefficient represented by a square. 
+
+
+
+### Interpreting Coefficients
+
+We can interpret logit models and ERGMs' coefficients with odd ratios and
+probabilities.
+
+we can calculate 
+
+* odd ratios (OR) by exponentiation the coefficient. 
+* probabilities (P) with the formula: exp(coef)/(1 + exp(coef)) 
+ 
+Let's calculate odd ratios for the model two's coefficients
+
+```{r or, exercise = TRUE, exercise.setup = "logit_Models"}
+
+# we access the coefficients from the summary of each model 
+# from the list, taking the first column of the table 
+# of stored results  
+
+coefM2 <- summary(logitModels[[2]])$coef[ , 1]
+
+# we exponentiate each of them with a for loop to compute the OR
+or <- NULL
+
+for (i in 1:length(coefM2)) {
+ 
+  temp <- exp(coefM2[i])
+  
+  or <- append(or, temp)
+}
+
+cbind(coefM2, or = round(or, 3))
+
+```
+
+How do we interpret the odd ratios? 
+
+First of all, we do not particularly care about the intercept. For now feel 
+free to ignore it. We consider an OR of 1.78 for numeracy and an OR of 0.25 for 
+anxiety.
+
+Exponentiating the numeracy coefficient tells us the expected increase in the 
+odds of success for each unit of numeracy: For each unit increase in numeracy a 
+study participant is 1.78 times more likely to have success.
+
+Exponentiating the anxiety coefficient tells us the expected increase in the 
+odds of success for each unit of anxiety: For each unit increase in anxiety a 
+study participant is 0.25 times more likely to have success 
+
+As a rule of thumb: When the OR is one point something (or higher) the odds are 
+high (it's likely that that explanatory variable has an effect on the outcome 
+one); when the OR is zero point something the odds are low (it's unlikely that 
+that explanatory variable has an effect on the outcome one) .
+
+How about probability?
+
+Can you modify the code I just provided and calculate probabilities in the box
+below assuming that the probability vector is called 'P'? Remember also to print
+the results.
+
+```{r grade_CoefProb, exercise = TRUE, exercise.setup = "logit_Models"}
+coefM2 <- summary(logitModels[[2]])$coef[ , 1]
+
+```
+
+```{r grade_CoefProb-solution}
+
+coefM2 <- summary(logitModels[[2]])$coef[ , 1]
+
+P <- NULL
+
+for (i in 1:length(coefM2)) {
+ 
+  temp <- exp(coefM2[i])/ (1 + exp(coefM2[i]))
+  
+  P <- append(P, temp)
+}
+
+cbind(coefM2, P = round(P, 3))
+
+
+```
+
+
+```{r grade_CoefProb-check}
+gradethis::grade_code(correct = "Well Done!")
+```
+
+
+How do we interpret probabilities? Easy Peasy. 
+
+There is a 64% probability that numeracy predicts success. 
+There is a 20% probability that anxious people are successful. 
+
+Remember that probabilities go from 0 to 1. 
+Also, never compare odd ratios and probabilities, they are two different things: 
+Pears and Bananas.
+
