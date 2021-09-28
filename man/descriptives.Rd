@@ -13,7 +13,6 @@ descriptives(
   fast = NULL,
   quantiles = NULL,
   IQR = FALSE,
-  omit_nonnumeric = TRUE,
   complete_cases = FALSE,
   digits = 2,
   print = TRUE
@@ -42,9 +41,7 @@ problems, otherwise defaults to \code{fast = FALSE}}
 (e.g. \code{quant = c(.25, .75)} will find the 25th and 75th percentiles)}
 
 \item{IQR}{logical, if \code{TRUE} (default is \code{FALSE}) the interquartile 
-range is computed}
-
-\item{omit_nonnumeric}{logical, should non-numeric variables be dropped? 
+range is computed
 Defaults to \code{TRUE} because most desciptives in this function are not 
 meaningful for factors or characters.}
 
@@ -97,7 +94,6 @@ Currently implemented:
 }
 \examples{
 descriptives(bootcamp2021::movie)
-descriptives(bootcamp2021::movie, omit_nonnumeric = FALSE)
 descriptives(bootcamp2021::movie, digits = 3)
 
 result <- descriptives(bootcamp2021::movie, print = FALSE)

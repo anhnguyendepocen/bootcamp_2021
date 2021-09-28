@@ -223,7 +223,7 @@ more about what to look for. SO, for now, we'll
 just do the minimal basics.
 
 ```{r amazon_summary, echo = TRUE, include = TRUE, exercise = TRUE, exercise.setup = "load_amazon"}
-bootcamp2021::descriptives(amazon, omit_nonnumeric = TRUE)
+bootcamp2021::descriptives(amazon)
 ```
 
 A quick plot to see the variable distributions 
