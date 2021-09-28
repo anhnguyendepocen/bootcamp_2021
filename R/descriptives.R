@@ -48,7 +48,6 @@
 #' (e.g. \code{quant = c(.25, .75)} will find the 25th and 75th percentiles)
 #' @param IQR logical, if \code{TRUE} (default is \code{FALSE}) the interquartile 
 #' range is computed
-#' @param omit_nonnumeric logical, should non-numeric variables be dropped? 
 #' Defaults to \code{TRUE} because most desciptives in this function are not 
 #' meaningful for factors or characters.
 #' @param complete_cases logical, should only complete cases be used? 
@@ -65,7 +64,6 @@
 #'
 #' @examples
 #' descriptives(bootcamp2021::movie)
-#' descriptives(bootcamp2021::movie, omit_nonnumeric = FALSE)
 #' descriptives(bootcamp2021::movie, digits = 3)
 #' 
 #' result <- descriptives(bootcamp2021::movie, print = FALSE)
@@ -80,11 +78,10 @@ descriptives <-function (x,
                           fast = NULL,
                           quantiles = NULL,
                           IQR = FALSE,
-                          omit_nonnumeric = TRUE,
                           complete_cases = FALSE,
                           digits = 2,
                           print = TRUE) {
-  
+  omit_nonnumeric <- TRUE  # hardcoded
   if (is.null(dim(x))) {
     x <- as.data.frame(matrix(x, ncol = 1))
   }
@@ -175,32 +172,9 @@ descriptives <-function (x,
   if (normal) {
     stats$skewness <- suppressWarnings(apply(x, 2, skewness, na.rm = na.rm))
     stats$kurtosis <- suppressWarnings(apply(x, 2, kurtosis, na.rm = na.rm))
-    
-    
-    klassen <- sapply(x, class)
-    lijst <- lapply(1:length(klassen), function(z) {
-      if (klassen[z] == "numeric") {
-        stats::shapiro.test(x[, z])
-      } else {
-        NA
-      }
-    })
-    
-    stats$normal.w <- sapply(lijst, function(z) {
-      if (length(z) == 4) {
-        unname(z$statistic)
-      } else {
-        NA
-      }
-    })
-    
-    stats$normal.p <- sapply(lijst, function(z) {
-      if (length(z) == 4) {
-        unname(z$p.value)
-      } else {
-        NA
-      }
-    })
+    shap <- apply(x, 2, stats::shapiro.test)
+    stats$normal.w <- lapply(shap, "[[", "statistic") |> unlist()
+    stats$normal.p <- lapply(shap, "[[", "p.value") |> unlist()
   }
   
   if (ranges) {
