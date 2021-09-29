@@ -982,7 +982,7 @@ Let' take a look at the variables
 
 ```{r homeplayground, include=TRUE, exercise = TRUE, exercise.setup = "homeplaydata"}
 
-summary(MediaElec)
+summary(MediaElecData)
 ```
 
 
