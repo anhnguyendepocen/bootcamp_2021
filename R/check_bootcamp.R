@@ -21,7 +21,7 @@
 #' check_bootcamp()
 #' }
 check_bootcamp <- function() {
-  check_and_update_github("SNAnalyst/bootcamp2021")
+  check_and_update_github("SNAnalyst/bootcamp_2021")
 }
 
 
