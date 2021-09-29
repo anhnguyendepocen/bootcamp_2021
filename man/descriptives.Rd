@@ -7,13 +7,12 @@
 descriptives(
   x,
   na.rm = TRUE,
-  skew = TRUE,
+  normal = FALSE,
   ranges = TRUE,
   trim = 0.1,
   fast = NULL,
   quantiles = NULL,
   IQR = FALSE,
-  omit_nonnumeric = TRUE,
   complete_cases = FALSE,
   digits = 2,
   print = TRUE
@@ -25,7 +24,7 @@ descriptives(
 \item{na.rm}{logical, \code{na.rm = FALSE} will delete the case in the 
 computation of statistics such as \code{mean}, \code{sd}, et cetera}
 
-\item{skew}{logical, if \code{TRUE} (the default) skewness and kurtosis are computed}
+\item{normal}{logical, if \code{TRUE} skewness and kurtosis are computed and the Shapiro-Wilk test of normality.}
 
 \item{ranges}{logical, if \code{TRUE} (the default) min, max, range, 
 mad, median are computed}
@@ -42,9 +41,7 @@ problems, otherwise defaults to \code{fast = FALSE}}
 (e.g. \code{quant = c(.25, .75)} will find the 25th and 75th percentiles)}
 
 \item{IQR}{logical, if \code{TRUE} (default is \code{FALSE}) the interquartile 
-range is computed}
-
-\item{omit_nonnumeric}{logical, should non-numeric variables be dropped? 
+range is computed
 Defaults to \code{TRUE} because most desciptives in this function are not 
 meaningful for factors or characters.}
 
@@ -82,8 +79,10 @@ Currently implemented:
 \item{sd}{standard deviation}
 \item{se}{standard error}
 \item{coefvar}{ceofficient of variation: sd/mean}
-\item{skewness}{Second item}
-\item{kurtosis}{Second item}
+\item{skewness}{skewness}
+\item{kurtosis}{kurtosis}
+\item{normal.w}{Shapiro-Wilk test of normality}
+\item{normal.p}{p-value of Shapiro-Wilk test of normality}
 \item{min}{minimum}
 \item{max}{maximum}
 \item{median}{median}
@@ -95,7 +94,6 @@ Currently implemented:
 }
 \examples{
 descriptives(bootcamp2021::movie)
-descriptives(bootcamp2021::movie, omit_nonnumeric = FALSE)
 descriptives(bootcamp2021::movie, digits = 3)
 
 result <- descriptives(bootcamp2021::movie, print = FALSE)
