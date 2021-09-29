@@ -31,7 +31,8 @@ Imports:
     remotes,
     rmarkdown,
     rstudioapi,
-    stats
+    stats,
+    texreg
 Remotes:
 	github::rstudio-education/gradethis,
 Suggests:
