@@ -504,7 +504,7 @@ DSjob_market$anxiety <- as.factor(DSjob_market$anxiety)
 ```
 
 
-```{r tut04_05, echo=TRUE, exercise = TRUE, exercise.setup = "tut04_0502"}
+```{r tut04_05, echo=FALSE, exercise.setup = "tut04_0502"}
 
 levels(DSjob_market$anxiety)
 DSjob_market$anxiety <- relevel(DSjob_market$anxiety, ref = "low")
