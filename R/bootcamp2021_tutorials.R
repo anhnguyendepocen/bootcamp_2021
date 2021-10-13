@@ -22,6 +22,7 @@
 #' bootcamp2021_tutorials()
 #' }
 bootcamp2021_tutorials <- function(graphics = TRUE) {
+  suppressMessages(require("learnr"))
   if (!is.logical(graphics)) stop("You need to set 'graphics' to TRUE or FALSE only (without parentheses)")
   all_tuts <- learnr::available_tutorials("bootcamp2021")
   perform <- glue::glue("learnr::run_tutorial('{tuto}', package = 'bootcamp2021')",
